@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">SimpleTodo</string>
+    <string name="edit_itemtext">Enter Item description here and click Save</string>
+    <string name="Save_text">Save</string>
+    <string name="btn_add">Add</string>
+    <string name="edt_hint">Add New Item Here</string>
 </resources>

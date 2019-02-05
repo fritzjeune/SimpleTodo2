@@ -1,6 +1,8 @@
 package com.allinnetwork.simpletodo;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -19,6 +21,11 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    public final static int EDIT_REQUEST_CODE = 20;
+
+    public final static String ITEM_TEXT = "ItemText";
+    public final static String ITEM_POSITION = "itemPosition";
+
     ArrayList<String> items;
     ArrayAdapter<String> itemsAdapter;
     ListView lvItems;
@@ -29,8 +36,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         readItems();
-        itemsAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
-        lvItems = (ListView) findViewById(R.id.lvItems);
+        itemsAdapter = new ArrayAdapter<String>(this, R.layout.list_view_fritz, items);
+        lvItems = findViewById(R.id.lvItems);
         lvItems.setAdapter(itemsAdapter);
 
         // mock data
@@ -42,12 +49,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onAddItem(View v) {
-        EditText etNewItem = (EditText) findViewById(R.id.etNewItem);
+        EditText etNewItem = findViewById(R.id.etNewItem);
         String itemText = etNewItem.getText().toString();
-        itemsAdapter.add(itemText);
-        etNewItem.setText("");
-        writeItems();
-        Toast.makeText(getApplicationContext(), "Item added to list" , Toast.LENGTH_SHORT).show();
+        if (itemText.length() != 0) {
+
+            itemsAdapter.add(itemText);
+            etNewItem.setText("");
+            writeItems();
+            Toast.makeText(getApplicationContext(), "Item added to list", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this,"you must add an Item", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void setupListViewListener() {
@@ -64,6 +76,31 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent i = new Intent(MainActivity.this, EditItemActivity.class);
+                i.putExtra(ITEM_TEXT , items.get(position));
+                i.putExtra(ITEM_POSITION, position);
+
+                startActivityForResult(i, EDIT_REQUEST_CODE);
+
+            }
+        });
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == EDIT_REQUEST_CODE) {
+            String updatedItem = data.getExtras().getString(ITEM_TEXT);
+            int position = data.getExtras().getInt(ITEM_POSITION);
+            items.set(position, updatedItem);
+            itemsAdapter.notifyDataSetChanged();
+            writeItems();
+            Toast.makeText(this, "Item updated succefully", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private File getDataFile() {
